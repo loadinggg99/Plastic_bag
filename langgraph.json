@@ -1,0 +1,7 @@
+{
+  "dependencies": ["."],
+  "graphs": {
+    "Star_identification": "./app/agent/Star_identification_v2.py:test_agent"
+  },
+  "env": ".env"
+}

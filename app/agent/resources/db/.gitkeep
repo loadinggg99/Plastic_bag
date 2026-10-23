@@ -1,0 +1,2 @@
+# 这个目录专门放 sqlite 数据库文件（checkpoint.db 等）。
+# 数据库文件本身已在 .gitignore 里忽略，这里保留 .gitkeep 只是为了目录结构完整。

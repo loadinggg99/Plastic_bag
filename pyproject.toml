@@ -1,0 +1,46 @@
+[project]
+name = "project3"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "signal_lost", email = "ryc2_7182818@163.com" }
+]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi[standard]>=0.148.0",
+    "jinja2>=3.1.6",
+    "langchain-openai>=1.7.1",
+    "langchain-tavily>=0.2.18",
+    "langgraph-cli[inmem]>=0.4.35",
+    "pydantic-settings>=2.15.0",
+    "uvicorn>=0.54.0",
+]
+
+[project.scripts]
+project3 = "project3:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8",
+]
+
+[tool.fastapi]
+entrypoint = "app.server.main:app"
+
+[[tool.uv.index]]
+url = "https://pypi.tuna.tsinghua.edu.cn/simple"
+default = true
+
+[tool.pytest.ini_options]
+# 把项目根加进 sys.path，这样 `pytest` 和 `python -m pytest` 都能 import app.*
+pythonpath = ["."]
+testpaths = ["tests"]
+addopts = "-ra"
+markers = [
+    "live: 需要真实网络和 API key 的测试",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.15,<0.13.0"]
+build-backend = "uv_build"

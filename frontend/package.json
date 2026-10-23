@@ -1,0 +1,25 @@
+{
+  "name": "project3",
+  "version": "2.0.0",
+  "description": "一个基于 LangGraph + Tavily + DeepSeek 的企业调研 Agent。 用户输入公司名称，Agent 自动调用工具，从公开网络信息中提取并结构化输出企业的六个维度信息： 基础工商信息、人员与股权结构、经营与财务状况、风险与司法信息、知识产权与资质、经营状况与舆情。",
+  "main": "index.js",
+  "directories": {
+    "test": "../tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "esbuild": "^0.28.2",
+    "vite": "^8.3.5"
+  },
+  "dependencies": {
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1"
+  }
+}

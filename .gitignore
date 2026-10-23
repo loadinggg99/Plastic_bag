@@ -1,0 +1,39 @@
+# 虚拟环境 / 依赖缓存
+.venv/
+.uv-cache/
+__pycache__/
+node_modules/
+*.py[cod]
+
+# 依赖锁文件（可选，视团队约定而定）
+requirements.lock
+package-lock.json
+
+# 密钥与本地配置（.env 里有真实 key，绝对不能提交）
+.env
+.env.*
+
+# 运行时产物（数据库/日志都在 app/agent/resources/ 下）
+*.pyc
+# 目录结构用 .gitkeep 保留，只忽略实际产物
+app/agent/resources/db/*.db
+app/agent/resources/db/*.db-journal
+app/agent/resources/db/*.db-wal
+app/agent/resources/db/*.db-shm
+app/agent/resources/logs/*
+!app/agent/resources/logs/.gitkeep
+*.sqlite
+*.sqlite3
+
+# 测试与工具缓存
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+tests/
+
+# 编辑器 / 系统
+.idea/
+.vscode/
+.DS_Store
