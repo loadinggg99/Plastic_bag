@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block title %}{{ section_title }} · {{ report.company }} · {{ site_name }}{% endblock %}
+
+{% block main %}
+<main class="section-page">
+  <nav class="breadcrumb" aria-label="面包屑">
+    <a href="/report/{{ report.id }}">← 返回调研结果</a>
+  </nav>
+
+  <header class="section-head domain-card--{{ domain.key if domain else 'all' }}">
+    <span class="section-head__icon">
+      {{ icon(icon_markup, 24, "section-head__svg") }}
+    </span>
+    <div class="section-head__text">
+      <p class="section-head__eyebrow">{{ report.company }}</p>
+      <h1 class="section-head__title">{{ section_title }}</h1>
+      {% if domain %}
+      <p class="section-head__desc">{{ domain.description }}</p>
+      {% endif %}
+    </div>
+  </header>
+
+  {% if available %}
+  <article class="section-content">
+    {{ content_html }}
+  </article>
+  {% else %}
+  <div class="section-content section-content--empty">
+    <p>本次查询没有返回「{{ section_title }}」的内容。</p>
+    <a class="btn-ghost" href="/report/{{ report.id }}">返回选择其他板块</a>
+  </div>
+  {% endif %}
+
+  <div class="section-actions">
+    <a class="btn-ghost" href="/report/{{ report.id }}">返回调研结果</a>
+    <a class="btn-ghost" href="/">重新查询</a>
+  </div>
+</main>
+{% endblock %}

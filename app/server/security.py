@@ -1,10 +1,10 @@
 # app/server/security.py
 """安全响应头（XSS / 点击劫持 / MIME 嗅探防护）。
 
-前端只加载同源的 `index.html`、`css/style.css`、`js/app.js`，没有内联脚本、
-没有内联事件处理器，所以 CSP 可以收得很紧。`require-trusted-types-for`
-会在支持的浏览器里直接禁掉 innerHTML 一类 DOM XSS 注入点；当前前端只使用
-`textContent` / `createElement`，不会触发。
+前端只加载同源的 `index.html`、`css/style.css`、`js/app.js`；服务端渲染的
+Jinja2 模板也没有内联脚本、没有内联事件处理器，所以 CSP 可以收得很紧。
+`require-trusted-types-for` 会在支持的浏览器里直接禁掉 innerHTML 一类 DOM XSS
+注入点；首页 JS 只使用 `textContent` / `createElement`，不会触发。
 
 注意：Swagger UI / ReDoc 依赖 CDN 和内联脚本，套这份 CSP 会白屏，
 所以 `/docs`、`/redoc`、`/openapi.json` 单独跳过 CSP（其余安全头照常）。

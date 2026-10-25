@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_icons.html" import icon %}
+
+{% block title %}{{ report.company }} · 企业调研 · {{ site_name }}{% endblock %}
+
+{% block main %}
+<main class="report-page">
+  <header class="report-head">
+    <div class="report-head__main">
+      <p class="report-head__eyebrow">企业调研结果</p>
+      <h1 class="report-head__title">{{ report.company }}</h1>
+      <p class="report-head__desc">点击下方板块的按钮，查看对应领域的详细信息。</p>
+    </div>
+    <a class="btn-ghost" href="/">重新查询</a>
+  </header>
+
+  {% if report.intro %}
+  <p class="report-intro">{{ report.intro }}</p>
+  {% endif %}
+
+  <section class="domain-grid" aria-label="六个调研板块">
+    {% for domain in domains %}
+    <article class="domain-card domain-card--{{ domain.key }}">
+      <div class="domain-card__body">
+        <span class="domain-card__index">{{ "%02d"|format(loop.index) }}</span>
+        <h2 class="domain-card__title">{{ domain.title }}</h2>
+        <p class="domain-card__desc">{{ domain.description }}</p>
+      </div>
+
+      {% if domain.available %}
+      <a class="domain-card__btn" href="{{ domain.url }}" aria-label="查看{{ domain.title }}详情">
+        {{ icon(domain.icon, 20) }}
+        <span>查看详情</span>
+      </a>
+      {% else %}
+      <button class="domain-card__btn domain-card__btn--disabled" type="button" disabled
+              aria-label="{{ domain.title }}本次未查询">
+        {{ icon(domain.icon, 20) }}
+        <span>本次未查询</span>
+      </button>
+      {% endif %}
+    </article>
+    {% endfor %}
+  </section>
+
+  {% if report.fallback %}
+  <aside class="report-fallback">
+    <p>本次结果没有按六个板块返回，可以查看完整内容。</p>
+    <a class="btn-ghost" href="/report/{{ report.id }}/all">查看完整内容</a>
+  </aside>
+  {% endif %}
+</main>
+{% endblock %}

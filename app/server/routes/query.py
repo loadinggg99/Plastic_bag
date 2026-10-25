@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
 from app.server.dependencies import invoke_agent
+from app.server.report_store import report_store
+from app.server.sections import parse_report
 
 router = APIRouter(tags=["query"])
 
@@ -26,4 +28,20 @@ def query_enterprise(req: QueryRequest):
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(status_code=500, detail=f"查询失败：{exc}")
 
-    return {"ok": True, "content": content, "company": query}
+    # 把整段结果拆成六个板块并缓存，前端随后跳转到 /report/{report_id}
+    parsed = parse_report(str(content))
+    report = report_store.put(
+        company=query,
+        raw=str(content),
+        intro=parsed.intro,
+        sections=parsed.sections,
+        fallback=parsed.fallback,
+    )
+
+    return {
+        "ok": True,
+        "content": content,
+        "company": query,
+        "report_id": report.id,
+        "report_url": f"/report/{report.id}",
+    }

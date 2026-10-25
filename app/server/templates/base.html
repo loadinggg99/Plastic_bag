@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <meta name="description" content="星鉴 —— 企业信息查询，一站式公开信息调研。">
+  <link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+  <link rel="stylesheet" href="/css/style.css?v=8">
+</head>
+<body>
+  <div class="app">
+
+    <header class="masthead">
+      <a class="masthead__brand" href="/" aria-label="星鉴首页">
+        <img class="brand__logo" src="/assets/logo.svg" alt="星鉴 Logo" width="44" height="44">
+        <span class="brand__text">
+          <span class="brand__name">星鉴</span>
+          <span class="brand__slogan">企业信息查询 · 一站式公开信息调研</span>
+        </span>
+      </a>
+    </header>
+
+    {% block main %}{% endblock %}
+
+    <footer class="foot">
+      <p>仅查询合法公开信息 · 结果仅用于前期快速调研，不构成尽调或法律依据</p>
+    </footer>
+  </div>
+</body>
+</html>

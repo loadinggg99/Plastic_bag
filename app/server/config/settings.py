@@ -16,6 +16,11 @@ class Settings:
     version: str = "0.1.0"
     cors_origins: list[str] = field(default_factory=lambda: ["*"])
     frontend_dir: Path = PROJECT_DIR / "frontend"
+    templates_dir: Path = PROJECT_DIR / "app" / "server" / "templates"
+
+    # 内存报告缓存：详情页依赖它，过期后需要重新查询
+    report_ttl_seconds: int = 3600
+    report_max_entries: int = 200
 
 
 settings = Settings()

@@ -5,6 +5,8 @@
     python -m app.server.main
     python app/server/main.py
 """
+
+'''
 import importlib.util
 import os
 import sys
@@ -24,6 +26,7 @@ if importlib.util.find_spec("uvicorn") is None:
             str(project_python),
             [str(project_python), str(Path(__file__).resolve()), *sys.argv[1:]],
         )
+'''
 
 import uvicorn
 
