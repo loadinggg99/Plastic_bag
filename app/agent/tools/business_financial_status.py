@@ -1,10 +1,9 @@
-# app/agent/tools/business_financial_status.py
-"""经营与财务状况——财务、上市、对外投资、融资与年报。"""
+"""经营与财务状况工具。"""
 from langchain.tools import tool
 
 from agent.llm import finance_llm
 from agent.tools import extract_structured, stringify
-from agent.tools.tavily_client import tavily_search_tool
+from agent.tools.tavily_client import search
 
 
 @tool
@@ -22,23 +21,15 @@ def get_business_financial_status(company_name: str) -> str:
         company_name: 要查询的公司名称
     """
     # 第一次搜索：财务与上市
-    finance_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 财务数据 营收 净利润 资产负债 "
-                f"上市信息 股票代码 上市日期 板块 股价"
-            )
-        }
+    finance_result = search(
+        f"{company_name} 财务数据 营收 净利润 资产负债 "
+        f"上市信息 股票代码 上市日期 板块 股价"
     )
 
     # 第二次搜索：投资、分支、融资与年报
-    investment_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 对外投资 持股比例 分支机构 分公司 子公司 "
-                f"融资历史 融资轮次 投资方 企业年报 招投标 中标公告"
-            )
-        }
+    investment_result = search(
+        f"{company_name} 对外投资 持股比例 分支机构 分公司 子公司 "
+        f"融资历史 融资轮次 投资方 企业年报 招投标 中标公告"
     )
 
     search_result = (

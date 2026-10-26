@@ -1,5 +1,4 @@
-# app/server/routes/__init__.py
-"""路由汇总。"""
+"""API 路由汇总。"""
 from fastapi import APIRouter
 
 from server.routes.pages import router as pages_router

@@ -1,86 +1,82 @@
-# app/agent/logger.py
-"""统一日志配置（参考 project1/agents/logger.py 的写法）。
+"""统一日志：一条日志 = MongoDB 里的一个文档（可选同时打控制台）。
 
-和参考版的差别：
-1. 路径来自 `agent.config.basic_config.LOG_DIR`（= `app/agent/resources/logs/`），
-   基于 `__file__` 算绝对路径，不随当前工作目录漂移；
-2. 用 `RotatingFileHandler`：单文件 5MB、保留 5 份，长期跑不会把磁盘写爆；
-3. 默认同时输出到控制台（`LOG_CONSOLE=0` 可关），本地调试不用再开一个终端 tail；
-4. `get_logger("server.query")` 拿子 logger，共用同一套 handler，
-   `%(name)s` 能看出日志是哪个模块打的。
+参数全在 `agent.config.database_config.LogConfig`。用法：
 
-用法：
     from agent.logger import get_logger
     logger = get_logger("server.query")
     logger.info("...")
+
+文档结构：{time, level, logger, message}（异常时 message 里带 traceback）。
 """
 from __future__ import annotations
 
 import logging
-import os
-from logging.handlers import RotatingFileHandler
+import sys
+import time
+from datetime import UTC, datetime
 
-from agent.config.basic_config import LOG_DIR
+from pymongo import MongoClient
+from pymongo.errors import PyMongoError
 
-LOG_FILE = LOG_DIR / "app.log"
+from agent.config.database_config import logConfig
+
 ROOT_LOGGER_NAME = "star_identification"
-LOG_FORMAT = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
-DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
-
-_MAX_BYTES = 5 * 1024 * 1024
-_BACKUP_COUNT = 5
 
 
-def _console_enabled() -> bool:
-    """默认打控制台；`LOG_CONSOLE=0/false/no/off` 时只写文件。"""
-    value = os.getenv("LOG_CONSOLE", "1").strip().lower()
-    return value not in {"0", "false", "no", "off"}
+class MongoHandler(logging.Handler):
+    """把日志 insert 进 MongoDB。"""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.collection = MongoClient(
+            logConfig.MONGO_URI,
+            serverSelectionTimeoutMS=1000,
+        )[logConfig.MONGO_DB][logConfig.MONGO_COLLECTION]
+        self._retry_at = 0.0
+
+    def emit(self, record: logging.LogRecord) -> None:
+        # Mongo 挂了就退避一会儿，别让每条日志都卡一次连接超时
+        if time.monotonic() < self._retry_at:
+            return
+        try:
+            self.collection.insert_one(
+                {
+                    "time": datetime.now(UTC),
+                    "level": record.levelname,
+                    "logger": record.name,
+                    "message": self.format(record),
+                }
+            )
+        except PyMongoError as exc:
+            # 只提示一次，退避 RETRY_SECONDS 秒；不打整段栈，免得刷屏
+            self._retry_at = time.monotonic() + logConfig.RETRY_SECONDS
+            print(f"[logger] MongoDB 写入失败（{logConfig.RETRY_SECONDS}s 后重试）：{exc}", file=sys.stderr)
 
 
 def setup_logger(name: str = ROOT_LOGGER_NAME) -> logging.Logger:
-    """返回带文件（默认还有控制台）输出的 logger。
-
-    幂等：同名 logger 已经有 handler 就直接复用，不会重复添加——
-    不然每调用一次就会多写一遍，日志行数翻倍。
-    """
-    LOG_DIR.mkdir(parents=True, exist_ok=True)
-
+    """同名 logger 只配一次 handler：重复调用不会重复写库。"""
     logger = logging.getLogger(name)
     if logger.handlers:
         return logger
 
-    logger.setLevel(logging.INFO)
-    formatter = logging.Formatter(LOG_FORMAT, datefmt=DATE_FORMAT)
+    logger.setLevel(logConfig.LEVEL)
+    logger.addHandler(MongoHandler())
 
-    file_handler = RotatingFileHandler(
-        LOG_FILE,
-        maxBytes=_MAX_BYTES,
-        backupCount=_BACKUP_COUNT,
-        encoding="utf-8",
-    )
-    file_handler.setFormatter(formatter)
-    logger.addHandler(file_handler)
+    if logConfig.CONSOLE:
+        console = logging.StreamHandler()
+        console.setFormatter(
+            logging.Formatter("%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+        )
+        logger.addHandler(console)
 
-    if _console_enabled():
-        console_handler = logging.StreamHandler()
-        console_handler.setFormatter(formatter)
-        logger.addHandler(console_handler)
-
-    # 不往上冒泡到 root：uvicorn 会给自己的 logger（以及 root）挂 handler，
-    # 冒泡会让同一条日志被打印两遍。
     logger.propagate = False
     return logger
 
 
 def get_logger(name: str) -> logging.Logger:
-    """模块级 logger，例如 `get_logger("server.query")`。
-
-    返回 `star_identification.<name>` 子 logger，向上冒泡到根 logger，
-    因此共用同一个文件 handler（和同一个 app.log）。
-    """
+    """模块级子 logger，例如 get_logger("server.query")，共用同一套 handler。"""
     setup_logger(ROOT_LOGGER_NAME)
     return logging.getLogger(f"{ROOT_LOGGER_NAME}.{name}")
 
 
-# 模块级默认 logger，方便 `from agent.logger import logger` 直接用
 logger = setup_logger()

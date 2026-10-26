@@ -1,37 +1,21 @@
-# config/output_config.py
-"""结构化输出模型。
+"""结构化输出模型：一个域一个 Pydantic 模型。
 
-一个域一个模型，字段与《企业信息内容.md》的六个章节一一对应：
-
-| 模型                       | 对应章节         | 使用它的工具                     |
-|----------------------------|------------------|----------------------------------|
-| `BasicBusinessInfo`        | 基础工商信息     | `get_basic_business_info`        |
-| `PersonnelEquityStructure` | 人员与股权结构   | `get_personnel_equity_structure` |
-| `BusinessFinancialStatus`  | 经营与财务状况   | `get_business_financial_status`  |
-| `RiskJudicialInfo`         | 风险与司法信息   | `get_risk_judicial_info`         |
-| `IpQualification`          | 知识产权与资质   | `get_ip_qualification`           |
-| `OperationPublicOpinion`   | 经营状况与舆情   | `get_operation_public_opinion`   |
-
-三个约定：
-1. 字段全部 `Optional[...] = None`。搜索结果里查不到的字段，模型返回 null，
-   `to_display()` 统一渲染成「未查到」，而不是让整次调用失败。
-2. 每个模型都有 `to_display()`，负责把结构化结果变成给 Agent 看的文本。
-   格式化放在代码里而不是交给 LLM 二次排版，输出格式才稳定。
-3. 六个模型都继承 `_DomainModel`，共享 `source_url`（数据来源URL）。该字段
-   不参与 LLM 结构化输出，由工具层从 Tavily 原始结果里回填。
+约定：
+- 字段均可为 None，查不到的字段返回 null，to_display() 统一渲染「未查到」；
+- 展示文本由 to_display() 生成，不交给 LLM 二次排版；
+- source_url 不进入 LLM schema，由工具层从 Tavily 结果回填。
 """
-from typing import Optional
 
 from pydantic import BaseModel, Field
 from pydantic.json_schema import SkipJsonSchema
 
 
-def _value(text: Optional[str]) -> str:
+def _value(text: str | None) -> str:
     """查不到的字段统一显示「未查到」。"""
     return text or "未查到"
 
 
-def _block(title: str, lines: list[tuple[str, Optional[str]]]) -> str:
+def _block(title: str, lines: list[tuple[str, str | None]]) -> str:
     """渲染一段带小标题的字段块，如：
 
         【基础工商信息】
@@ -51,7 +35,7 @@ class _DomainModel(BaseModel):
     原始搜索结果里回填，从根上避免模型编造 URL。
     """
 
-    source_url: SkipJsonSchema[Optional[str]] = Field(
+    source_url: SkipJsonSchema[str | None] = Field(
         default=None,
         description=(
             "数据来源URL，由工具从 Tavily 搜索结果中自动回填；"
@@ -60,79 +44,78 @@ class _DomainModel(BaseModel):
     )
 
 
-# 基础工商信息查询功能类
 class BasicBusinessInfo(_DomainModel):
     """基础工商信息：查询任何公司最先看到的部分"""
 
-    company_name: Optional[str] = Field(
+    company_name: str | None = Field(
         default=None,
         description="企业名称，公司当前工商登记的全称"
     )
-    former_names: Optional[str] = Field(
+    former_names: str | None = Field(
         default=None,
         description="曾用名，公司历史上用过的名称；没有则返回 null"
     )
-    credit_code: Optional[str] = Field(
+    credit_code: str | None = Field(
         default=None,
         description="统一社会信用代码"
     )
-    registration_number: Optional[str] = Field(
+    registration_number: str | None = Field(
         default=None,
         description="工商注册号"
     )
-    organization_code: Optional[str] = Field(
+    organization_code: str | None = Field(
         default=None,
         description="组织机构代码"
     )
-    taxpayer_id: Optional[str] = Field(
+    taxpayer_id: str | None = Field(
         default=None,
         description="纳税人识别号"
     )
-    legal_representative: Optional[str] = Field(
+    legal_representative: str | None = Field(
         default=None,
         description="法定代表人姓名"
     )
-    registered_capital: Optional[str] = Field(
+    registered_capital: str | None = Field(
         default=None,
         description="注册资本（认缴），如 '1000万元人民币'"
     )
-    paid_in_capital: Optional[str] = Field(
+    paid_in_capital: str | None = Field(
         default=None,
         description="实缴资本，如 '500万元人民币'"
     )
-    founded_date: Optional[str] = Field(
+    founded_date: str | None = Field(
         default=None,
         description="成立日期，格式如 '2015-03-12' 或 '2015年3月'"
     )
-    business_term: Optional[str] = Field(
+    business_term: str | None = Field(
         default=None,
         description="营业期限，如 '2015-03-12 至 长期'"
     )
-    operation_status: Optional[str] = Field(
+    operation_status: str | None = Field(
         default=None,
         description="经营状态，如存续、开业、注销、吊销、迁出"
     )
-    company_type: Optional[str] = Field(
+    company_type: str | None = Field(
         default=None,
         description="企业类型，如有限责任公司、股份有限公司"
     )
-    registered_address: Optional[str] = Field(
+    registered_address: str | None = Field(
         default=None,
         description="注册地址"
     )
-    business_scope: Optional[str] = Field(
+    business_scope: str | None = Field(
         default=None,
         description="经营范围"
     )
-    registration_authority: Optional[str] = Field(
+    registration_authority: str | None = Field(
         default=None,
         description="登记机关"
     )
-    approval_date: Optional[str] = Field(
+    approval_date: str | None = Field(
         default=None,
         description="核准日期，格式如 '2024-06-01'"
     )
-    industry: Optional[str] = Field(
+    industry: str | None = Field(
         default=None,
         description="所属行业，如软件和信息技术服务业"
     )
@@ -161,30 +144,29 @@ class BasicBusinessInfo(_DomainModel):
         ])
 
 
-# 人员与股权结构查询功能类
 class PersonnelEquityStructure(_DomainModel):
     """人员与股权结构：人和钱的归属"""
 
-    key_personnel: Optional[str] = Field(
+    key_personnel: str | None = Field(
         default=None,
         description="主要人员，包括法定代表人、董事、监事、经理等高管及其职务"
     )
-    shareholders: Optional[str] = Field(
+    shareholders: str | None = Field(
         default=None,
         description=(
             "股东信息，逐个列出股东名称/姓名、持股比例、认缴出资额、实缴出资额、"
             "出资方式、出资日期"
         )
     )
-    ultimate_beneficiaries: Optional[str] = Field(
+    ultimate_beneficiaries: str | None = Field(
         default=None,
         description="最终受益人，通过股权穿透计算出的实际享有收益的自然人及其受益比例"
     )
-    actual_controller: Optional[str] = Field(
+    actual_controller: str | None = Field(
         default=None,
         description="实际控制人，对公司拥有实际控制权的自然人或组织，以及控制路径"
     )
-    equity_penetration: Optional[str] = Field(
+    equity_penetration: str | None = Field(
         default=None,
         description=(
             "股权穿透图/企业关系图谱，用文字描述公司—股东—对外投资之间的"
@@ -204,35 +186,34 @@ class PersonnelEquityStructure(_DomainModel):
         ])
 
 
-# 经营与财务状况查询功能类
 class BusinessFinancialStatus(_DomainModel):
     """经营与财务状况：财务、上市、投资、融资与年报"""
 
-    financials: Optional[str] = Field(
+    financials: str | None = Field(
         default=None,
         description="财务数据，如营收、净利润、资产负债等指标（上市公司为主）"
     )
-    listing_info: Optional[str] = Field(
+    listing_info: str | None = Field(
         default=None,
         description="上市信息，如股票代码、上市日期、所属板块、股价行情"
     )
-    outbound_investments: Optional[str] = Field(
+    outbound_investments: str | None = Field(
         default=None,
         description="对外投资，公司直接投资的企业列表及持股比例"
     )
-    branches: Optional[str] = Field(
+    branches: str | None = Field(
         default=None,
         description="分支机构，公司的分公司或子公司"
     )
-    financing_history: Optional[str] = Field(
+    financing_history: str | None = Field(
         default=None,
         description="融资历史，历次融资的轮次、时间、金额、投资方"
     )
-    annual_reports: Optional[str] = Field(
+    annual_reports: str | None = Field(
         default=None,
         description="企业年报，每年自主公示的年度报告，含资产状况、社保人数等"
     )
-    bidding: Optional[str] = Field(
+    bidding: str | None = Field(
         default=None,
         description="招投标，公司参与的招标与中标公告"
     )
@@ -250,27 +231,26 @@ class BusinessFinancialStatus(_DomainModel):
         ])
 
 
-# 风险与司法信息查询功能类
 class RiskJudicialInfo(_DomainModel):
     """风险与司法信息：合规与信用状况"""
 
-    judicial_risk: Optional[str] = Field(
+    judicial_risk: str | None = Field(
         default=None,
         description="司法风险，如法律诉讼、法院公告、开庭公告、裁判文书（案由、身份、时间、结果）"
     )
-    execution_info: Optional[str] = Field(
+    execution_info: str | None = Field(
         default=None,
         description="执行信息，如被执行人、失信被执行人、限制消费令、终本案件"
     )
-    operation_risk: Optional[str] = Field(
+    operation_risk: str | None = Field(
         default=None,
         description="经营风险，如经营异常、行政处罚、股权出质、股权冻结、动产抵押"
     )
-    tax_risk: Optional[str] = Field(
+    tax_risk: str | None = Field(
         default=None,
         description="税务风险，如欠税公告、税务异常"
     )
-    bankruptcy: Optional[str] = Field(
+    bankruptcy: str | None = Field(
         default=None,
         description="破产重整，如破产案件信息、重整申请、破产审查"
     )
@@ -286,31 +266,30 @@ class RiskJudicialInfo(_DomainModel):
         ])
 
 
-# 知识产权与资质查询功能类
 class IpQualification(_DomainModel):
     """知识产权与资质：商标、专利、著作权与各类许可"""
 
-    trademarks: Optional[str] = Field(
+    trademarks: str | None = Field(
         default=None,
         description="商标，商标名称、类别、申请/注册号、状态"
     )
-    patents: Optional[str] = Field(
+    patents: str | None = Field(
         default=None,
         description="专利，专利名称、类型（发明/实用新型/外观设计）、申请号、状态"
     )
-    copyrights: Optional[str] = Field(
+    copyrights: str | None = Field(
         default=None,
         description="著作权，作品名称、登记号"
     )
-    software_copyrights: Optional[str] = Field(
+    software_copyrights: str | None = Field(
         default=None,
         description="软件著作权，软件名称、登记号"
     )
-    qualification_certificates: Optional[str] = Field(
+    qualification_certificates: str | None = Field(
         default=None,
         description="资质证书，各类行业资质、行政许可及其编号、有效期"
     )
-    website_filing: Optional[str] = Field(
+    website_filing: str | None = Field(
         default=None,
         description="网站备案，公司官网的 ICP 备案号、网站域名、主办单位性质"
     )
@@ -327,23 +306,22 @@ class IpQualification(_DomainModel):
         ])
 
 
-# 经营状况与舆情查询功能类
 class OperationPublicOpinion(_DomainModel):
     """经营状况与舆情：员工、招聘、新闻与评分"""
 
-    employee_scale: Optional[str] = Field(
+    employee_scale: str | None = Field(
         default=None,
         description="员工规模，如参保人数、人员规模"
     )
-    recruitment: Optional[str] = Field(
+    recruitment: str | None = Field(
         default=None,
         description="招聘信息，在招职位、薪资范围、工作地点"
     )
-    news_public_opinion: Optional[str] = Field(
+    news_public_opinion: str | None = Field(
         default=None,
         description="新闻舆情，与公司相关的新闻、公告、自媒体信息（含正负面倾向）"
     )
-    enterprise_score: Optional[str] = Field(
+    enterprise_score: str | None = Field(
         default=None,
         description="企业评分，如天眼评分或行业评分，以及评分依据"
     )

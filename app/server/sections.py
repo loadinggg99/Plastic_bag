@@ -1,13 +1,6 @@
-# app/server/sections.py
-"""六个调研板块的元数据、解析与安全渲染。
+"""六板块元数据、文本解析与安全渲染。
 
-这个模块只做三件事：
-1. 定义六个板块（标题、简介、按钮用的 SVG 图标）；
-2. 把 Agent 返回的整段文本按【板块名】拆成 intro + 六个 section；
-3. 把板块正文渲染成 HTML（转义 + 链接白名单），供 Jinja2 详情页直接输出。
-
-注意：这里不信任任何模型输出。所有动态文本都先 escape，再拼接我们自己的
-HTML 标签；URL 只允许 http(s)，因此不会产生 XSS。
+模型输出一律视为不可信：先转义再拼 HTML，链接只放行 http(s)。
 """
 from __future__ import annotations
 

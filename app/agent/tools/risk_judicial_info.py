@@ -1,10 +1,9 @@
-# app/agent/tools/risk_judicial_info.py
-"""风险与司法信息——评估公司合规与信用状况的关键。"""
+"""风险与司法信息工具。"""
 from langchain.tools import tool
 
 from agent.llm import risk_llm
 from agent.tools import extract_structured, stringify
-from agent.tools.tavily_client import tavily_search_tool
+from agent.tools.tavily_client import search
 
 
 @tool
@@ -23,23 +22,15 @@ def get_risk_judicial_info(company_name: str) -> str:
         company_name: 要查询的公司名称
     """
     # 第一次搜索：司法与执行
-    judicial_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 法律诉讼 裁判文书 开庭公告 法院公告 "
-                f"被执行人 失信被执行人 限制消费令 终本案件"
-            )
-        }
+    judicial_result = search(
+        f"{company_name} 法律诉讼 裁判文书 开庭公告 法院公告 "
+        f"被执行人 失信被执行人 限制消费令 终本案件"
     )
 
     # 第二次搜索：经营、税务与破产
-    operation_risk_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 经营异常 行政处罚 股权出质 股权冻结 动产抵押 "
-                f"欠税公告 税务异常 破产重整 破产案件"
-            )
-        }
+    operation_risk_result = search(
+        f"{company_name} 经营异常 行政处罚 股权出质 股权冻结 动产抵押 "
+        f"欠税公告 税务异常 破产重整 破产案件"
     )
 
     search_result = (

@@ -1,10 +1,9 @@
-# app/agent/tools/personnel_equity_structure.py
-"""人员与股权结构——重点关注的“人”和“钱”的归属。"""
+"""人员与股权结构工具。"""
 from langchain.tools import tool
 
 from agent.llm import equity_llm
 from agent.tools import extract_structured, stringify
-from agent.tools.tavily_client import tavily_search_tool
+from agent.tools.tavily_client import search
 
 
 @tool
@@ -22,23 +21,15 @@ def get_personnel_equity_structure(company_name: str) -> str:
         company_name: 要查询的公司名称
     """
     # 第一次搜索：人和股权明细
-    personnel_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 主要人员 法定代表人 董事 监事 经理 高管 "
-                f"股东信息 持股比例 认缴出资额 实缴出资额 出资方式 出资日期"
-            )
-        }
+    personnel_result = search(
+        f"{company_name} 主要人员 法定代表人 董事 监事 经理 高管 "
+        f"股东信息 持股比例 认缴出资额 实缴出资额 出资方式 出资日期"
     )
 
     # 第二次搜索：股权穿透（谁最终受益、谁实际控制）
-    penetration_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 实际控制人 最终受益人 股权穿透 "
-                f"股权结构图 企业关系图谱 控股股东 受益所有人"
-            )
-        }
+    penetration_result = search(
+        f"{company_name} 实际控制人 最终受益人 股权穿透 "
+        f"股权结构图 企业关系图谱 控股股东 受益所有人"
     )
 
     # 两路结果拼成一份材料再抽取，免得模型只看到一半

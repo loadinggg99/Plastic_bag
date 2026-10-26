@@ -1,10 +1,9 @@
-# app/agent/tools/ip_qualification.py
-"""知识产权与资质——商标、专利、著作权、资质证书与网站备案。"""
+"""知识产权与资质工具。"""
 from langchain.tools import tool
 
 from agent.llm import ip_llm
 from agent.tools import extract_structured
-from agent.tools.tavily_client import tavily_search_tool
+from agent.tools.tavily_client import search
 
 
 @tool
@@ -19,13 +18,9 @@ def get_ip_qualification(company_name: str) -> str:
     Args:
         company_name: 要查询的公司名称
     """
-    search_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 商标 专利 著作权 软件著作权 "
-                f"资质证书 行政许可 行业资质 ICP备案 网站备案"
-            )
-        }
+    search_result = search(
+        f"{company_name} 商标 专利 著作权 软件著作权 "
+        f"资质证书 行政许可 行业资质 ICP备案 网站备案"
     )
 
     return extract_structured(

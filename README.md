@@ -48,11 +48,11 @@ Star_identification_v3/
 │   ├── langgraph.json              # langgraph dev 配置
 │   ├── agent/                      # Agent 全部实现（顶层包 agent）
 │   │   ├── __init__.py             # 包说明与模块导航
-│   │   ├── Star_identification_v2.py   # Agent 创建入口（build_agent / test_agent）
+│   │   ├── main_agent.py         # Agent 创建入口（build_agent / test_agent）
 │   │   ├── config/
 │   │   │   ├── __init__.py             # 统一出口：settings / dbConfig / 输出模型
 │   │   │   ├── basic_config.py         # 基础配置（模型、路径、Tavily 参数）
-│   │   │   ├── database_config.py      # 数据库配置
+│   │   │   ├── database_config.py      # 数据库 / 日志配置（DbConfig、LogConfig）
 │   │   │   └── output_config.py        # Pydantic 输出模型
 │   │   ├── prompts/
 │   │   │   └── prompt.py               # Prompt 加载逻辑
@@ -68,11 +68,11 @@ Star_identification_v3/
 │   │   ├── resources/                  # 运行时资源
 │   │   │   ├── db/                      # sqlite 数据库（.db 文件专用）
 │   │   │   │   └── checkpoint.db        # 会话记录，首次用 Sqlite 时自动创建
-│   │   │   ├── logs/                    # 日志
 │   │   │   └── prompts/
 │   │   │       └── enterprise_inquiry.yaml   # Prompt 模板
 │   │   ├── database.py                 # SQLite checkpointer
 │   │   ├── llm.py                       # LLM 实例 + 结构化 LLM
+│   │   ├── logger.py                    # 统一日志（MongoDB + 控制台）
 │   │   └── test.py                      # 命令行交互入口
 │   └── server/                     # FastAPI 服务 + 服务端渲染（顶层包 server）
 │       ├── __init__.py                 # create_app：中间件、路由、静态白名单
@@ -107,7 +107,7 @@ Star_identification_v3/
 
 ### 1. 环境要求
 
-- Python 3.10+（本项目锁定 3.14）
+- Python 3.14
 - 推荐使用 [`uv`](https://github.com/astral-sh/uv) 管理依赖
 
 ### 2. 安装依赖
@@ -145,7 +145,7 @@ uv run langgraph dev                 # LangGraph 本地服务 / Studio
 作为库调用（在 `app/` 下）：
 
 ```python
-from agent.Star_identification_v2 import build_agent
+from agent.main_agent import build_agent
 
 agent = build_agent()  # 默认 "RAM"，会话存在内存里
 # agent = build_agent("Sqlite")  # 持久化到 app/agent/resources/db/checkpoint.db
@@ -171,6 +171,34 @@ RUN_LIVE_TESTS=1 uv run --project app pytest tests/test_live_e2e.py -v -s   # �
 
 ---
 
+## 🧾 日志
+
+日志不落本地文件，直接写 MongoDB：一条日志 = `logs` 集合里的一个文档
+`{time, level, logger, message}`。统一入口 `app/agent/logger.py`，参数在
+`LogConfig`（`app/agent/config/database_config.py`）：
+
+| 字段 | 默认值 | 说明 |
+|---|---|---|
+| `MONGO_URI` | `mongodb://127.0.0.1:27017` | Mongo 地址 |
+| `MONGO_DB` / `MONGO_COLLECTION` | `star_identification` / `logs` | 库名 / 集合名 |
+| `LEVEL` | `INFO` | `DEBUG` / `INFO` / `WARNING` / `ERROR` / `CRITICAL`，写错启动即报错 |
+| `CONSOLE` | `True` | 是否同时输出到控制台 |
+| `RETRY_SECONDS` | `60` | Mongo 连不上时退避多久再试 |
+
+- 各模块用 `get_logger("server.query")` 取子 logger，`logger` 字段记录来源；
+- Mongo 挂了不阻塞业务：写入失败会退避，控制台照样能看到日志。
+
+```js
+// mongosh 里看最近日志
+use star_identification
+db.logs.find().sort({ time: -1 }).limit(20)
+
+// 可选：只保留 7 天（在 time 上建 TTL 索引）
+db.logs.createIndex({ time: 1 }, { expireAfterSeconds: 604800 })
+```
+
+---
+
 ## 🧠 核心设计
 
 - **LLM 统一管理**（`app/agent/llm.py`）：`main_llm` / `summary_model` / 六个结构化 LLM（`basic_info_llm` / `equity_llm` / `finance_llm` / `risk_llm` / `ip_llm` / `opinion_llm`）都在这里创建。
@@ -178,6 +206,7 @@ RUN_LIVE_TESTS=1 uv run --project app pytest tests/test_live_e2e.py -v -s   # �
 - **数据来源URL 不经过 LLM**：`source_url` 字段用 `SkipJsonSchema` 排除在结构化 schema 之外，模型看不到；真实链接由 `collect_urls()` 从 Tavily 原始结果里收集、`extract_structured()` 回填，因此不会出现模型编造的链接。
 - **结果页/详情页由服务端渲染**（`app/server/routes/pages.py` + `app/server/templates/`）：`/report/{id}` 是 3×2 的六板块网格，`/report/{id}/{section}` 是单个板块详情页。首页只负责搜索，拿到 `report_url` 后跳转。
 - **报告缓存**（`app/server/report_store.py`）：`/api/query` 把解析后的六个板块写进进程内缓存，报告页和详情页按 `report_id` 读取。默认 TTL 1 小时、最多 200 份，过期或服务重启后需要重新查询。
+- **查询并发控制**（`app/server/dependencies.py`）：用信号量限制同时执行的查询数（`settings.max_concurrent_queries`，默认 3），超出部分排队；日志记录排队与执行耗时。
 - **工具职责单一**（`app/agent/tools/`）：工具返回字符串，Agent 直接展示，格式由代码控制，不依赖 LLM 二次排版。
 - **统一导入风格**：`app/` 是项目根，顶层包就是 `agent` / `server`，全项目使用 `agent.*` / `server.*` 绝对导入；入口用 `uv run python -m agent.test`（在 `app/` 下，cwd 天然在 `sys.path` 上；在仓库根跑 pytest 时由 `pytest.ini` 的 `pythonpath = app` 补上）。
 
@@ -187,7 +216,7 @@ RUN_LIVE_TESTS=1 uv run --project app pytest tests/test_live_e2e.py -v -s   # �
 
 - **严格 CSP**（`app/server/security.py`）：前端页面下发 `default-src 'self'`、`script-src 'self'`、`style-src 'self'`、`object-src 'none'`、`base-uri 'none'`、`frame-ancestors 'none'` 等策略，并开启 `require-trusted-types-for 'script'`；支持的浏览器会直接禁掉 `innerHTML` 一类 DOM XSS 注入点。
 - **安全响应头**：`X-Content-Type-Options: nosniff`、`X-Frame-Options: DENY`、`Referrer-Policy: no-referrer`、`Permissions-Policy`、`Cross-Origin-Opener-Policy`；HTTPS 下额外下发 HSTS。
-- **静态资源白名单**：只挂载 `frontend/index.html` 与 `assets/`、`css/`、`js/` 三个目录，不把 `node_modules/`、`package.json`、`dist/` 暴露到同源下，避免同源任意 HTML/JS 成为 XSS 载体。
+- **静态资源白名单**：只挂载 `frontend/index.html` 与 `assets/`、`css/`、`js/` 三个目录，不把整个 `frontend/` 暴露到同源下，避免同源任意 HTML/JS 成为 XSS 载体。
 - **前端只走安全 DOM API**：首页 JS 只用 `textContent` / `createElement`，不使用 `innerHTML`；链接只允许 `http(s)`、`mailto` 和站内相对地址/锚点，`javascript:`、`data:`、`vbscript:`、协议相对（`//evil.com`）和反斜杠写法一律按纯文本展示。
 - **服务端渲染同样防 XSS**：详情页内容由 `sections.py` 先 `escape()` 再拼接 HTML，只把合法 http(s) URL 变成链接；Jinja2 模板开启 autoescape，板块标题、公司名、错误信息等动态文本都不会被当作 HTML。
 - **文档页单独放行**：`/docs`、`/redoc`、`/openapi.json` 依赖 CDN 和内联脚本，跳过 CSP（其余安全头照常），避免 Swagger UI 白屏。
@@ -212,7 +241,6 @@ RUN_LIVE_TESTS=1 uv run --project app pytest tests/test_live_e2e.py -v -s   # �
   | 目录 | 用途 | 是否提交 |
   |---|---|---|
   | `app/agent/resources/db/` | sqlite 数据库（`.db`） | 否，自动创建 |
-  | `app/agent/resources/logs/` | 日志 | 否 |
   | `app/agent/resources/prompts/` | prompt 模板 | 是 |
 
   配置里不写 `"./resources/checkpoint.db"` 这种相对路径，而是基于 `__file__` 算绝对路径。否则路径会跟着当前工作目录漂移（`<根>/resources` 与 `app/agent/resources` 的差别），换个目录启动就找不到数据库了。

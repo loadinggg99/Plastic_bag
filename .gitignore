@@ -2,7 +2,6 @@
 .venv/
 .uv-cache/
 __pycache__/
-node_modules/
 *.py[cod]
 
 # LangGraph 本地开发状态（langgraph dev 生成）
@@ -10,7 +9,6 @@ node_modules/
 
 # 依赖锁文件（可选，视团队约定而定）
 requirements.lock
-package-lock.json
 
 # 密钥与本地配置（.env 里有真实 key，绝对不能提交）
 .env
@@ -23,8 +21,6 @@ app/agent/resources/db/*.db
 app/agent/resources/db/*.db-journal
 app/agent/resources/db/*.db-wal
 app/agent/resources/db/*.db-shm
-app/agent/resources/logs/*
-!app/agent/resources/logs/.gitkeep
 *.sqlite
 *.sqlite3
 

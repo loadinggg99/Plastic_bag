@@ -1,13 +1,7 @@
-"""pytest 全局配置。
+"""pytest 全局配置：把 app/ 加入 sys.path，并准备测试用环境变量。
 
-要点：
-1. 后端项目根在 app/（uv 项目根），加进 sys.path 才能在仓库根直接 import
-   agent.* / server.*。
-2. 测试不依赖开发机上真实的 .env：先把 app/.env 读进 os.environ，再给仍然缺失的
-   密钥兜底成假值。
-
-   注意顺序不能反。pydantic-settings 里 **真实环境变量优先级高于 .env**，
-   如果先 setdefault 假值，真 key 就会被假 key 盖掉，联网测试会 401。
+先加载 app/.env、再给缺失的 key 补假值。pydantic-settings 中环境变量优先于
+.env，顺序反了会让真实 key 被假值覆盖，联网测试会 401。
 """
 import os
 import sys

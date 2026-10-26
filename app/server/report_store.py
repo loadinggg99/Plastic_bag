@@ -1,11 +1,7 @@
-# app/server/report_store.py
-"""进程内报告缓存。
+"""进程内报告缓存（TTL + 容量上限）。
 
-`/api/query` 生成报告后写进这里，`/report/{id}` 与 `/report/{id}/{section}`
-再从缓存读取。报告不是长期数据，过期后让用户重新查询即可。
-
-注意：这是单进程内存缓存。如果以后用多 worker / 多实例部署，需要换成
-Redis、SQLite 之类的共享存储，否则详情页可能落到没有该报告的进程。
+/api/query 写入，报告页与详情页按 report_id 读取；过期后由用户重新查询。
+单进程内存实现：多 worker / 多实例部署时需替换为 Redis 等共享存储。
 """
 from __future__ import annotations
 
@@ -16,6 +12,10 @@ from collections import OrderedDict
 from dataclasses import dataclass
 
 from server.config import settings
+
+from agent.logger import get_logger
+
+logger = get_logger("server.report_store")
 
 
 @dataclass
@@ -46,6 +46,8 @@ class ReportStore:
         ]
         for report_id in expired:
             self._items.pop(report_id, None)
+        if expired:
+            logger.info("清理过期报告 %d 份，剩余 %d 份", len(expired), len(self._items))
 
     def put(
         self,
@@ -76,6 +78,15 @@ class ReportStore:
             self._items[report_id] = report
             while len(self._items) > self._max_entries:
                 self._items.popitem(last=False)
+            logger.info(
+                "缓存报告：id=%s 公司=%r 板块=%d 前言=%d字 fallback=%s 当前缓存=%d 份",
+                report.id,
+                company,
+                len(sections),
+                len(intro),
+                bool(fallback),
+                len(self._items),
+            )
             return report
 
     def get(self, report_id: str) -> StoredReport | None:

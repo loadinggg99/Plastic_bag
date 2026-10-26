@@ -1,10 +1,9 @@
-# app/agent/tools/basic_business_info.py
-"""基础工商信息——查询任何公司最先看到的部分。"""
+"""基础工商信息工具。"""
 from langchain.tools import tool
 
 from agent.llm import basic_info_llm
 from agent.tools import extract_structured
-from agent.tools.tavily_client import tavily_search_tool
+from agent.tools.tavily_client import search
 
 
 @tool
@@ -18,13 +17,9 @@ def get_basic_business_info(company_name: str) -> str:
     Args:
         company_name: 要查询的公司名称
     """
-    search_result = tavily_search_tool.invoke(
-        {
-            "query": (
-                f"{company_name} 工商信息 统一社会信用代码 法定代表人 注册资本 "
-                f"成立日期 经营状态 企业类型 注册地址 经营范围 登记机关 所属行业"
-            )
-        }
+    search_result = search(
+        f"{company_name} 工商信息 统一社会信用代码 法定代表人 注册资本 "
+        f"成立日期 经营状态 企业类型 注册地址 经营范围 登记机关 所属行业"
     )
 
     return extract_structured(

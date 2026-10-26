@@ -1,9 +1,9 @@
-# app/server/routes/pages.py
 """服务端渲染页面：调研结果页 + 六个板块详情页。"""
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
+from agent.logger import get_logger
 from server.config import settings
 from server.report_store import report_store
 from server.sections import (
@@ -12,6 +12,8 @@ from server.sections import (
     FALLBACK_ICON,
     render_section_html,
 )
+
+logger = get_logger("server.pages")
 
 router = APIRouter(tags=["pages"])
 templates = Jinja2Templates(directory=str(settings.templates_dir))
@@ -43,7 +45,8 @@ def _error(
     )
 
 
-def _expired(request: Request):
+def _expired(request: Request, report_id: str):
+    logger.warning("报告不存在或已过期：report_id=%s path=%s", report_id, request.url.path)
     minutes = max(1, settings.report_ttl_seconds // 60)
     return _error(
         request,
@@ -57,7 +60,7 @@ def report_page(request: Request, report_id: str):
     """2×3 的六个板块导航页。"""
     report = report_store.get(report_id)
     if report is None:
-        return _expired(request)
+        return _expired(request, report_id)
 
     domains = [
         {
@@ -83,7 +86,7 @@ def section_page(request: Request, report_id: str, section_key: str):
     """单个板块的详情页；section_key=all 时查看完整内容。"""
     report = report_store.get(report_id)
     if report is None:
-        return _expired(request)
+        return _expired(request, report_id)
 
     if section_key == "all":
         domain = None
