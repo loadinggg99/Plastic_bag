@@ -2,9 +2,9 @@
 """知识产权与资质——商标、专利、著作权、资质证书与网站备案。"""
 from langchain.tools import tool
 
-from app.agent.llm import ip_llm
-from app.agent.tools import extract_structured
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import ip_llm
+from agent.tools import extract_structured
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool

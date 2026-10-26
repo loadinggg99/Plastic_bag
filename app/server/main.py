@@ -1,9 +1,9 @@
 # app/server/main.py
 """命令行入口。
 
-运行：
-    python -m app.server.main
-    python app/server/main.py
+在 app/ 目录下运行：
+    uv run python -m server.main
+    uv run uvicorn server:app --reload
 """
 
 '''
@@ -12,14 +12,14 @@ import os
 import sys
 from pathlib import Path
 
-PROJECT_DIR = Path(__file__).resolve().parents[2]
+APP_DIR = Path(__file__).resolve().parents[1]
 
-# 支持直接 `python app/server/main.py`：补上项目根才能 import app.server.xxx
+# 支持直接 `python app/server/main.py`：补上 app/ 才能 import server.xxx
 if __package__ in (None, ""):
-    sys.path.insert(0, str(PROJECT_DIR))
+    sys.path.insert(0, str(APP_DIR))
 
 if importlib.util.find_spec("uvicorn") is None:
-    project_python = PROJECT_DIR / ".venv" / "bin" / "python"
+    project_python = APP_DIR / ".venv" / "bin" / "python"
     if project_python.is_file() and Path(sys.executable).resolve() != project_python.resolve():
         print(f"当前 Python 缺少 uvicorn，切换到项目环境：{project_python}", file=sys.stderr)
         os.execv(
@@ -30,8 +30,8 @@ if importlib.util.find_spec("uvicorn") is None:
 
 import uvicorn
 
-from app.server import app
-from app.server.config import settings
+from server import app
+from server.config import settings
 
 
 def main() -> None:

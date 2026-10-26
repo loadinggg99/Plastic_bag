@@ -2,9 +2,9 @@
 """人员与股权结构——重点关注的“人”和“钱”的归属。"""
 from langchain.tools import tool
 
-from app.agent.llm import equity_llm
-from app.agent.tools import extract_structured, stringify
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import equity_llm
+from agent.tools import extract_structured, stringify
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool
@@ -51,4 +51,5 @@ def get_personnel_equity_structure(company_name: str) -> str:
         search_result,
         equity_llm,
         "人员与股权结构信息（主要人员、股东信息、最终受益人、实际控制人、股权穿透关系）",
+        sources=(personnel_result, penetration_result),
     )

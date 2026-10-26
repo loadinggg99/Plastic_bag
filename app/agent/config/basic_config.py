@@ -20,9 +20,8 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # 本文件位于 app/agent/config/basic_config.py
 AGENT_DIR = Path(__file__).resolve().parent.parent   # -> app/agent/
-APP_DIR = AGENT_DIR.parent                           # -> app/
-PROJECT_DIR = APP_DIR.parent                         # -> 项目根
-ENV_FILE = PROJECT_DIR / ".env"
+APP_DIR = AGENT_DIR.parent                           # -> app/（uv 项目根）
+ENV_FILE = APP_DIR / ".env"
 
 RESOURCES_DIR = AGENT_DIR / "resources"   # 资源根目录
 DB_DIR = RESOURCES_DIR / "db"             # 数据库文件专用目录

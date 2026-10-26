@@ -15,7 +15,7 @@ import uuid
 from collections import OrderedDict
 from dataclasses import dataclass
 
-from app.server.config import settings
+from server.config import settings
 
 
 @dataclass

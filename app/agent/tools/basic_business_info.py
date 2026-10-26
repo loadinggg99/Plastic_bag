@@ -2,9 +2,9 @@
 """基础工商信息——查询任何公司最先看到的部分。"""
 from langchain.tools import tool
 
-from app.agent.llm import basic_info_llm
-from app.agent.tools import extract_structured
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import basic_info_llm
+from agent.tools import extract_structured
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool

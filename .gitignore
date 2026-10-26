@@ -5,6 +5,9 @@ __pycache__/
 node_modules/
 *.py[cod]
 
+# LangGraph 本地开发状态（langgraph dev 生成）
+.langgraph_api/
+
 # 依赖锁文件（可选，视团队约定而定）
 requirements.lock
 package-lock.json

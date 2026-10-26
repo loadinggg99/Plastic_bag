@@ -12,7 +12,7 @@ def get_agent():
     """延迟构建 agent（避免导入时就加载模型）。"""
     global _agent
     if _agent is None:
-        from app.agent.Star_identification_v2 import build_agent
+        from agent.Star_identification_v2 import build_agent
         _agent = build_agent(storage_mode="RAM")
     return _agent
 

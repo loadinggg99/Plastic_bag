@@ -1,24 +1,24 @@
 # app/agent/test.py
 """命令行交互入口。
 
-运行方式（二选一，都需要在项目根目录下）：
-    python -m app.agent.test
-    python app/agent/test.py
+运行方式（二选一，都需要在 app/ 目录下）：
+    uv run python -m agent.test
+    uv run python agent/test.py
 
 连续对话，输入 exit 或 quit 退出。
 """
 import sys
 from pathlib import Path
 
-# 支持直接 `python app/agent/test.py`：此时 sys.path[0] 是 app/agent/ 而不是
-# 项目根，补上项目根才能 import app.agent.xxx。
+# 支持直接 `python agent/test.py`：此时 sys.path[0] 是 app/agent/ 而不是
+# app/，补上 app/ 才能 import agent.xxx。
 if __package__ in (None, ""):
-    sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from langchain_core.messages import HumanMessage
 from langchain_core.runnables import RunnableConfig
 
-from app.agent.Star_identification_v2 import build_agent
+from agent.Star_identification_v2 import build_agent
 
 
 def print_answer(result) -> None:

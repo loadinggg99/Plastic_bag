@@ -2,8 +2,8 @@
 """路由汇总。"""
 from fastapi import APIRouter
 
-from app.server.routes.pages import router as pages_router
-from app.server.routes.query import router as query_router
+from server.routes.pages import router as pages_router
+from server.routes.query import router as query_router
 
 api_router = APIRouter()
 api_router.include_router(query_router)

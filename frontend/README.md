@@ -19,17 +19,17 @@ frontend/
 
 ## 快速开始
 
-后端服务在 `app/server/`（FastAPI 包，负责托管本页面 + 调用 Agent）。在**项目根目录**执行：
+后端服务在 `app/server/`（FastAPI 包，负责托管本页面 + 调用 Agent）。在 **`app/` 目录**（后端 uv 项目根）执行：
 
 ```bash
-uv run uvicorn app.server:app --reload
+uv run uvicorn server:app --reload
 # 或
-uv run python -m app.server.main
+uv run python -m server.main
 ```
 
 然后浏览器打开 <http://127.0.0.1:8000>，接口文档见 <http://127.0.0.1:8000/docs>。
 
-> 首次启动前请确认项目根目录 `.env` 已配置 `DEEPSEEK_API_KEY` 和 `TAVILY_API_KEY`。
+> 首次启动前请确认 `app/.env` 已配置 `DEEPSEEK_API_KEY` 和 `TAVILY_API_KEY`。
 
 ## 前后端接口契约
 

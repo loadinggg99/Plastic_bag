@@ -12,15 +12,18 @@
 | `IpQualification`          | 知识产权与资质   | `get_ip_qualification`           |
 | `OperationPublicOpinion`   | 经营状况与舆情   | `get_operation_public_opinion`   |
 
-两个约定：
+三个约定：
 1. 字段全部 `Optional[...] = None`。搜索结果里查不到的字段，模型返回 null，
    `to_display()` 统一渲染成「未查到」，而不是让整次调用失败。
 2. 每个模型都有 `to_display()`，负责把结构化结果变成给 Agent 看的文本。
    格式化放在代码里而不是交给 LLM 二次排版，输出格式才稳定。
+3. 六个模型都继承 `_DomainModel`，共享 `source_url`（数据来源URL）。该字段
+   不参与 LLM 结构化输出，由工具层从 Tavily 原始结果里回填。
 """
 from typing import Optional
 
 from pydantic import BaseModel, Field
+from pydantic.json_schema import SkipJsonSchema
 
 
 def _value(text: Optional[str]) -> str:
@@ -39,8 +42,26 @@ def _block(title: str, lines: list[tuple[str, Optional[str]]]) -> str:
     return f"【{title}】\n{body}"
 
 
+class _DomainModel(BaseModel):
+    """六个域输出模型的公共基类。
+
+    `source_url` 用 `SkipJsonSchema` 包住，因此**不会**出现在
+    `with_structured_output()` 生成的函数参数 schema 里：模型看不到这个字段，
+    也不需要（更不能）生成它。真实链接由 `extract_structured()` 从 Tavily
+    原始搜索结果里回填，从根上避免模型编造 URL。
+    """
+
+    source_url: SkipJsonSchema[Optional[str]] = Field(
+        default=None,
+        description=(
+            "数据来源URL，由工具从 Tavily 搜索结果中自动回填；"
+            "多个链接用顿号分隔，查不到则为 null"
+        ),
+    )
+
+
 # 基础工商信息查询功能类
-class BasicBusinessInfo(BaseModel):
+class BasicBusinessInfo(_DomainModel):
     """基础工商信息：查询任何公司最先看到的部分"""
 
     company_name: Optional[str] = Field(
@@ -136,11 +157,12 @@ class BasicBusinessInfo(BaseModel):
             ("登记机关", self.registration_authority),
             ("核准日期", self.approval_date),
             ("所属行业", self.industry),
+            ("数据来源URL", self.source_url),
         ])
 
 
 # 人员与股权结构查询功能类
-class PersonnelEquityStructure(BaseModel):
+class PersonnelEquityStructure(_DomainModel):
     """人员与股权结构：人和钱的归属"""
 
     key_personnel: Optional[str] = Field(
@@ -178,11 +200,12 @@ class PersonnelEquityStructure(BaseModel):
             ("最终受益人", self.ultimate_beneficiaries),
             ("实际控制人", self.actual_controller),
             ("股权穿透图/企业关系图谱", self.equity_penetration),
+            ("数据来源URL", self.source_url),
         ])
 
 
 # 经营与财务状况查询功能类
-class BusinessFinancialStatus(BaseModel):
+class BusinessFinancialStatus(_DomainModel):
     """经营与财务状况：财务、上市、投资、融资与年报"""
 
     financials: Optional[str] = Field(
@@ -223,11 +246,12 @@ class BusinessFinancialStatus(BaseModel):
             ("融资历史", self.financing_history),
             ("企业年报", self.annual_reports),
             ("招投标", self.bidding),
+            ("数据来源URL", self.source_url),
         ])
 
 
 # 风险与司法信息查询功能类
-class RiskJudicialInfo(BaseModel):
+class RiskJudicialInfo(_DomainModel):
     """风险与司法信息：合规与信用状况"""
 
     judicial_risk: Optional[str] = Field(
@@ -258,11 +282,12 @@ class RiskJudicialInfo(BaseModel):
             ("经营风险", self.operation_risk),
             ("税务风险", self.tax_risk),
             ("破产重整", self.bankruptcy),
+            ("数据来源URL", self.source_url),
         ])
 
 
 # 知识产权与资质查询功能类
-class IpQualification(BaseModel):
+class IpQualification(_DomainModel):
     """知识产权与资质：商标、专利、著作权与各类许可"""
 
     trademarks: Optional[str] = Field(
@@ -298,11 +323,12 @@ class IpQualification(BaseModel):
             ("软件著作权", self.software_copyrights),
             ("资质证书", self.qualification_certificates),
             ("网站备案", self.website_filing),
+            ("数据来源URL", self.source_url),
         ])
 
 
 # 经营状况与舆情查询功能类
-class OperationPublicOpinion(BaseModel):
+class OperationPublicOpinion(_DomainModel):
     """经营状况与舆情：员工、招聘、新闻与评分"""
 
     employee_scale: Optional[str] = Field(
@@ -328,4 +354,5 @@ class OperationPublicOpinion(BaseModel):
             ("招聘信息", self.recruitment),
             ("新闻舆情", self.news_public_opinion),
             ("企业评分", self.enterprise_score),
+            ("数据来源URL", self.source_url),
         ])

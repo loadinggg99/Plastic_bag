@@ -2,9 +2,9 @@
 """经营状况与舆情——员工规模、招聘、新闻舆情与企业评分。"""
 from langchain.tools import tool
 
-from app.agent.llm import opinion_llm
-from app.agent.tools import extract_structured, stringify
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import opinion_llm
+from agent.tools import extract_structured, stringify
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool
@@ -36,4 +36,5 @@ def get_operation_public_opinion(company_name: str) -> str:
         search_result,
         opinion_llm,
         "经营状况与舆情信息（员工规模、招聘信息、新闻舆情、企业评分）",
+        sources=(staff_result, news_result),
     )

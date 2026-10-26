@@ -12,7 +12,7 @@
 """
 from pathlib import Path
 
-from app.agent.config import dbConfig
+from agent.config import dbConfig
 
 # 按数据库绝对路径缓存 checkpointer，避免重复开连接
 _sqlite_cache: dict[Path, object] = {}

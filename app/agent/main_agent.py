@@ -1,16 +1,16 @@
 # 内部模块
-from app.agent.config import settings
-from app.agent.database import init_sqlite
-from app.agent.llm import main_llm, summary_model
-from app.agent.prompts.prompt import load_prompt_template
+from agent.config import settings
+from agent.database import init_sqlite
+from agent.llm import main_llm, summary_model
+from agent.prompts.prompt import load_prompt_template
 
 # 六个域的工具
-from app.agent.tools.basic_business_info import get_basic_business_info
-from app.agent.tools.business_financial_status import get_business_financial_status
-from app.agent.tools.ip_qualification import get_ip_qualification
-from app.agent.tools.operation_public_opinion import get_operation_public_opinion
-from app.agent.tools.personnel_equity_structure import get_personnel_equity_structure
-from app.agent.tools.risk_judicial_info import get_risk_judicial_info
+from agent.tools.basic_business_info import get_basic_business_info
+from agent.tools.business_financial_status import get_business_financial_status
+from agent.tools.ip_qualification import get_ip_qualification
+from agent.tools.operation_public_opinion import get_operation_public_opinion
+from agent.tools.personnel_equity_structure import get_personnel_equity_structure
+from agent.tools.risk_judicial_info import get_risk_judicial_info
 
 # 外部模块
 from langchain.agents import create_agent

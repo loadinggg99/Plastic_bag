@@ -1,4 +1,4 @@
-from app.agent.config import (
+from agent.config import (
     BasicBusinessInfo,
     BusinessFinancialStatus,
     IpQualification,

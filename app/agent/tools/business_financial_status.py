@@ -2,9 +2,9 @@
 """经营与财务状况——财务、上市、对外投资、融资与年报。"""
 from langchain.tools import tool
 
-from app.agent.llm import finance_llm
-from app.agent.tools import extract_structured, stringify
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import finance_llm
+from agent.tools import extract_structured, stringify
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool
@@ -50,4 +50,5 @@ def get_business_financial_status(company_name: str) -> str:
         search_result,
         finance_llm,
         "经营与财务状况信息（财务数据、上市信息、对外投资、分支机构、融资历史、企业年报、招投标）",
+        sources=(finance_result, investment_result),
     )

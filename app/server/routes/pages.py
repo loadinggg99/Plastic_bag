@@ -4,9 +4,9 @@ from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-from app.server.config import settings
-from app.server.report_store import report_store
-from app.server.sections import (
+from server.config import settings
+from server.report_store import report_store
+from server.sections import (
     DOMAIN_BY_KEY,
     DOMAINS,
     FALLBACK_ICON,

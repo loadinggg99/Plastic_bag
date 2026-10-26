@@ -3,8 +3,9 @@
 from dataclasses import dataclass, field
 from pathlib import Path
 
-# 本文件位于 app/server/config/settings.py，向上三级到项目根
-PROJECT_DIR = Path(__file__).resolve().parents[3]
+# 本文件位于 app/server/config/settings.py
+APP_DIR = Path(__file__).resolve().parents[2]    # -> app/（uv 项目根）
+REPO_DIR = APP_DIR.parent                        # -> 仓库根（frontend/ 在这里）
 
 
 @dataclass(frozen=True)
@@ -15,8 +16,8 @@ class Settings:
     description: str = "企业信息查询 Agent 后端接口"
     version: str = "0.1.0"
     cors_origins: list[str] = field(default_factory=lambda: ["*"])
-    frontend_dir: Path = PROJECT_DIR / "frontend"
-    templates_dir: Path = PROJECT_DIR / "app" / "server" / "templates"
+    frontend_dir: Path = REPO_DIR / "frontend"
+    templates_dir: Path = APP_DIR / "server" / "templates"
 
     # 内存报告缓存：详情页依赖它，过期后需要重新查询
     report_ttl_seconds: int = 3600

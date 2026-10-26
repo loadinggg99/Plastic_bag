@@ -1,6 +1,6 @@
 # app/agent/tools/tavily_client.py
 
-from app.agent.config import settings
+from agent.config import settings
 from langchain_tavily import TavilySearch
 
 # 说明：

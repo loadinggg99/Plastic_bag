@@ -6,7 +6,7 @@
   <title>星鉴 · 企业信息查询</title>
   <meta name="description" content="星鉴 —— 企业信息查询，一站式公开信息调研。">
   <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
-  <link rel="stylesheet" href="css/style.css?v=4">
+  <link rel="stylesheet" href="css/style.css?v=8">
 </head>
 <body>
   <div class="app">
@@ -55,7 +55,7 @@
           </svg>
         </div>
         <p class="state__title">输入企业名称，开始调研</p>
-        <p class="state__desc">星鉴将自动检索公开网络信息，并整理成一份调研结果。</p>
+        <p class="state__desc">星鉴将自动检索公开网络信息，并整理成六个板块的调研结果。</p>
       </div>
 
       <!-- 加载状态 -->
@@ -78,15 +78,7 @@
         <p class="state__desc" id="error-text"></p>
       </div>
 
-      <!-- 结果大框 -->
-      <div class="result-box" id="result-box" hidden>
-        <div class="result-box__bar">
-          <span class="result-box__label">调研结果</span>
-          <button class="result-box__copy" id="btn-copy" type="button">复制</button>
-        </div>
-        <div class="markdown" id="report"></div>
-      </div>
-
+      <!-- 结果区：查询成功后跳转到 /report/{id}，六板块网格由服务端渲染 -->
     </main>
 
     <footer class="foot">
@@ -94,6 +86,6 @@
     </footer>
   </div>
 
-  <script src="js/app.js?v=4"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 </html>

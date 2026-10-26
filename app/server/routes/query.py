@@ -3,9 +3,9 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from app.server.dependencies import invoke_agent
-from app.server.report_store import report_store
-from app.server.sections import parse_report
+from server.dependencies import invoke_agent
+from server.report_store import report_store
+from server.sections import parse_report
 
 router = APIRouter(tags=["query"])
 

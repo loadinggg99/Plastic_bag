@@ -64,7 +64,6 @@ opentelemetry-exporter-http-transport==0.66b1
 opentelemetry-exporter-otlp-common==0.66b1
 opentelemetry-exporter-otlp-proto-common==1.45.1
 opentelemetry-exporter-otlp-proto-http==1.45.1
-opentelemetry-exporter-prometheus==0.63b1
 opentelemetry-proto==1.45.1
 opentelemetry-sdk==1.45.1
 opentelemetry-semantic-conventions==0.66b1
@@ -73,8 +72,6 @@ ormsgpack==1.13.0
 packaging==26.3
 pathspec==1.1.1
 pluggy==1.7.0
--e file:///Volumes/Code/agent_development_workspace/project3
-prometheus-client==0.26.0
 propcache==0.5.4
 protobuf==6.33.6
 pycparser==3.11

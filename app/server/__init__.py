@@ -11,18 +11,18 @@
 - report_store.py 内存报告缓存（TTL + 容量上限）
 - main.py         命令行入口
 
-启动：
-    uvicorn app.server:app --reload
-    python -m app.server.main
+启动（在 app/ 目录下）：
+    uv run uvicorn server:app --reload
+    uv run python -m server.main
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.server.config import settings
-from app.server.routes import api_router
-from app.server.security import SecurityHeadersMiddleware
+from server.config import settings
+from server.routes import api_router
+from server.security import SecurityHeadersMiddleware
 
 # 前端真正需要对外暴露的静态目录
 _FRONTEND_ASSET_DIRS = ("assets", "css", "js")

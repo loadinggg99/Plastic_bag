@@ -9,7 +9,7 @@ from pathlib import Path
 
 from pydantic import BaseModel, Field
 
-from app.agent.config.basic_config import settings
+from agent.config.basic_config import settings
 
 
 class DbConfig(BaseModel):

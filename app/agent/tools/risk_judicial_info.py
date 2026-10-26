@@ -2,9 +2,9 @@
 """风险与司法信息——评估公司合规与信用状况的关键。"""
 from langchain.tools import tool
 
-from app.agent.llm import risk_llm
-from app.agent.tools import extract_structured, stringify
-from app.agent.tools.tavily_client import tavily_search_tool
+from agent.llm import risk_llm
+from agent.tools import extract_structured, stringify
+from agent.tools.tavily_client import tavily_search_tool
 
 
 @tool
@@ -51,4 +51,5 @@ def get_risk_judicial_info(company_name: str) -> str:
         search_result,
         risk_llm,
         "风险与司法信息（司法风险、执行信息、经营风险、税务风险、破产重整）",
+        sources=(judicial_result, operation_risk_result),
     )
